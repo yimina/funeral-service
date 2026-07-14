@@ -429,7 +429,10 @@ function listenMessages(){
 }
 
 async function addMessage(entry){
-  await db.ref('messages').push(entry);
+  const newRef = db.ref('messages').push();
+  entry.id = newRef.key;
+  await newRef.set(entry);
+  return newRef.key;
 }
 
 function renderWall(){
@@ -497,12 +500,13 @@ async function handleSubmit(){
   const relation = selectedRelation === '기타' ? $('relationOther').value.trim() : selectedRelation;
   const message = $('fMessage').value.trim();
 
+  let newId = null;
   try{
-    await addMessage({ name, relation, message, timestamp: Date.now() });
+    newId = await addMessage({ name, relation, message, timestamp: Date.now() });
   }catch(e){
     console.error('메시지 저장 실패', e);
   }
-  sendToSheet({ name, relation, message, timestamp: Date.now() });
+  sendToSheet({ action: 'create', id: newId, name, relation, message, timestamp: Date.now() });
   resetForm();
 
   $('formView').style.display = 'none';
@@ -546,11 +550,12 @@ $('submitBtn').addEventListener('click', handleSubmit);
 $('deceasedName').addEventListener('input', saveDeceasedName);
 $('exportBtn').addEventListener('click', exportCsv);
 
-const ADMIN_PASSWORD = "2580";
+const ADMIN_PASSWORD = "0000";
 
 function deleteMessage(id){
   if(!confirm('이 메시지를 삭제할까요? 되돌릴 수 없습니다.')) return;
   db.ref('messages/' + id).remove().catch(e=>console.error('삭제 실패', e));
+  sendToSheet({ action: 'delete', id });
 }
 
 $('adminBtn').addEventListener('click', ()=>{
