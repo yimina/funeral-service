@@ -252,6 +252,35 @@ textarea::placeholder{color:var(--ink-faint);}
 }
 .export-btn:hover{color:var(--ink-soft);}
 
+.footer-links{
+  display:flex;
+  justify-content:center;
+  gap:18px;
+  margin-top:28px;
+}
+.footer-links .export-btn{margin:0;}
+
+.wall-card{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
+.wall-card-body{flex:1;min-width:0;}
+.wall-delete-btn{
+  display:none;
+  flex:none;
+  background:none;
+  border:1px solid var(--line);
+  color:var(--brick);
+  font-size:12px;
+  padding:5px 10px;
+  cursor:pointer;
+}
+.wall-delete-btn:hover{background:var(--brick);color:var(--paper);border-color:var(--brick);}
+body.admin-mode .wall-delete-btn{display:block;}
+body.admin-mode #adminBtn{color:var(--navy);}
+
 @media (max-width:480px){
   .stage{padding:40px 20px 48px;}
   .deceased-name-input{font-size:26px;}
@@ -331,7 +360,10 @@ textarea::placeholder{color:var(--ink-faint);}
     <div class="wall-empty" id="wallEmpty" style="display:none;">아직 남겨진 메시지가 없습니다.</div>
   </div>
 
-  <button class="export-btn" id="exportBtn">방명록 CSV로 내보내기</button>
+  <div class="footer-links">
+    <button class="export-btn" id="exportBtn">방명록 CSV로 내보내기</button>
+    <button class="export-btn" id="adminBtn">관리자 모드</button>
+  </div>
 
 </div>
 
@@ -411,13 +443,20 @@ function renderWall(){
     const card = document.createElement('div');
     card.className = 'wall-card';
     card.innerHTML = `
-      <div class="wall-card-top">
-        <p class="wall-name">${escapeHtml(m.name)}</p>
-        ${m.relation ? `<span class="wall-relation">${escapeHtml(m.relation)}</span>` : ''}
+      <div class="wall-card-body">
+        <div class="wall-card-top">
+          <p class="wall-name">${escapeHtml(m.name)}</p>
+          ${m.relation ? `<span class="wall-relation">${escapeHtml(m.relation)}</span>` : ''}
+        </div>
+        ${m.message ? `<p class="wall-message">${escapeHtml(m.message)}</p>` : ''}
       </div>
-      ${m.message ? `<p class="wall-message">${escapeHtml(m.message)}</p>` : ''}
+      <button class="wall-delete-btn" data-delete="${m.id}">삭제</button>
     `;
     grid.appendChild(card);
+  });
+
+  grid.querySelectorAll('[data-delete]').forEach(btn=>{
+    btn.addEventListener('click', ()=> deleteMessage(btn.dataset.delete));
   });
 }
 
@@ -506,6 +545,29 @@ function exportCsv(){
 $('submitBtn').addEventListener('click', handleSubmit);
 $('deceasedName').addEventListener('input', saveDeceasedName);
 $('exportBtn').addEventListener('click', exportCsv);
+
+const ADMIN_PASSWORD = "2580";
+
+function deleteMessage(id){
+  if(!confirm('이 메시지를 삭제할까요? 되돌릴 수 없습니다.')) return;
+  db.ref('messages/' + id).remove().catch(e=>console.error('삭제 실패', e));
+}
+
+$('adminBtn').addEventListener('click', ()=>{
+  if(document.body.classList.contains('admin-mode')){
+    document.body.classList.remove('admin-mode');
+    $('adminBtn').textContent = '관리자 모드';
+    return;
+  }
+  const input = prompt('관리자 비밀번호를 입력하세요');
+  if(input === null) return;
+  if(input === ADMIN_PASSWORD){
+    document.body.classList.add('admin-mode');
+    $('adminBtn').textContent = '관리자 모드 종료';
+  }else{
+    alert('비밀번호가 올바르지 않습니다.');
+  }
+});
 
 listenDeceasedName();
 listenMessages();
