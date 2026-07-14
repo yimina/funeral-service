@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>디지털 방명록</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
+
+:root{
+  --paper:#F7F4EC;
+  --paper-deep:#EFEADC;
+  --ink:#1E1C19;
+  --ink-soft:#6B675E;
+  --ink-faint:#9A9689;
+  --line:#DAD3C0;
+  --line-soft:#E7E1D2;
+  --navy:#2C3852;
+  --navy-hover:#1B2438;
+  --navy-soft:#E7EAF1;
+  --brick:#8C4A3A;
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'Noto Sans KR',sans-serif;
+  min-height:100vh;
+}
+
+.stage{
+  max-width:600px;
+  margin:0 auto;
+  padding:56px 28px 64px;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+
+.mark{
+  width:52px;height:52px;
+  color:var(--navy);
+  margin:0 auto 20px;
+  display:block;
+}
+
+.headline{text-align:center;margin-bottom:44px;}
+.eyebrow{
+  font-size:13px;
+  letter-spacing:0.22em;
+  color:var(--ink-soft);
+  margin:0 0 14px;
+}
+.deceased-row{
+  display:flex;
+  align-items:baseline;
+  justify-content:center;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.deceased-name-input{
+  font-family:'Noto Serif KR',serif;
+  font-weight:700;
+  font-size:34px;
+  color:var(--ink);
+  background:transparent;
+  border:none;
+  border-bottom:1px solid transparent;
+  outline:none;
+  text-align:center;
+  padding:2px 0;
+  width:auto;
+  min-width:80px;
+}
+.deceased-name-input::placeholder{color:var(--ink-faint);font-weight:500;}
+.deceased-name-input:hover,.deceased-name-input:focus{border-bottom:1px solid var(--line);}
+.deceased-suffix{font-family:'Noto Serif KR',serif;font-size:22px;color:var(--ink-soft);}
+.condolence-phrase{
+  font-family:'Noto Serif KR',serif;
+  font-size:15px;
+  color:var(--ink-soft);
+  margin:14px 0 0;
+}
+
+.panel{flex:1;position:relative;}
+
+.form-view, .thanks-view{
+  transition:opacity .35s ease;
+}
+.thanks-view{
+  display:none;
+  text-align:center;
+  padding:64px 10px;
+}
+.thanks-view .mark{color:var(--navy);width:44px;height:44px;margin-bottom:22px;}
+.thanks-view h2{
+  font-family:'Noto Serif KR',serif;
+  font-size:24px;
+  font-weight:600;
+  margin:0 0 10px;
+}
+.thanks-view p{
+  font-size:14px;
+  color:var(--ink-soft);
+  margin:0;
+}
+
+.field-block{margin-bottom:26px;}
+.field-block label{
+  display:block;
+  font-size:13px;
+  color:var(--ink-soft);
+  margin-bottom:10px;
+}
+.field-block input[type=text]{
+  width:100%;
+  font-family:'Noto Sans KR',sans-serif;
+  font-size:18px;
+  color:var(--ink);
+  background:var(--paper-deep);
+  border:1px solid var(--line);
+  padding:14px 16px;
+  outline:none;
+}
+.field-block input[type=text]:focus{border-color:var(--navy);}
+.field-block input::placeholder{color:var(--ink-faint);}
+
+.chip-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+.chip{
+  padding:10px 18px;
+  font-size:15px;
+  border:1px solid var(--line);
+  background:var(--paper-deep);
+  color:var(--ink-soft);
+  cursor:pointer;
+  user-select:none;
+}
+.chip.selected{
+  background:var(--navy);
+  border-color:var(--navy);
+  color:var(--paper);
+}
+.chip-other-input{
+  display:none;
+  margin-top:12px;
+}
+.chip-other-input.show{display:block;}
+
+textarea{
+  width:100%;
+  min-height:120px;
+  font-family:'Noto Sans KR',sans-serif;
+  font-size:17px;
+  line-height:1.6;
+  color:var(--ink);
+  background:var(--paper-deep);
+  border:1px solid var(--line);
+  padding:14px 16px;
+  outline:none;
+  resize:vertical;
+}
+textarea:focus{border-color:var(--navy);}
+textarea::placeholder{color:var(--ink-faint);}
+
+.submit-btn{
+  width:100%;
+  padding:18px;
+  margin-top:6px;
+  background:var(--navy);
+  color:var(--paper);
+  border:none;
+  font-family:'Noto Sans KR',sans-serif;
+  font-size:17px;
+  font-weight:600;
+  letter-spacing:0.02em;
+  cursor:pointer;
+  transition:background .15s;
+}
+.submit-btn:hover{background:var(--navy-hover);}
+.submit-btn:active{transform:scale(0.99);}
+
+.name-warn{
+  border-color:var(--brick) !important;
+}
+
+.wall{
+  margin-top:56px;
+  padding-top:28px;
+  border-top:1px solid var(--line);
+}
+.wall-caption{
+  font-size:13px;
+  color:var(--ink-soft);
+  text-align:center;
+  margin:0 0 20px;
+}
+.wall-grid{
+  display:flex;
+  flex-direction:column;
+  gap:1px;
+  background:var(--line-soft);
+}
+.wall-card{
+  background:var(--paper);
+  padding:16px 18px;
+}
+.wall-card-top{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:6px;
+}
+.wall-name{font-weight:600;font-size:14px;margin:0;}
+.wall-relation{
+  font-size:11px;
+  color:var(--navy);
+  background:var(--navy-soft);
+  padding:2px 8px;
+}
+.wall-message{
+  font-size:14px;
+  color:var(--ink-soft);
+  margin:0;
+  line-height:1.6;
+  word-break:break-word;
+}
+.wall-empty{
+  text-align:center;
+  color:var(--ink-faint);
+  font-size:13px;
+  padding:24px 0;
+}
+
+@media (max-width:480px){
+  .stage{padding:40px 20px 48px;}
+  .deceased-name-input{font-size:26px;}
+}
+</style>
+</head>
+<body>
+
+<div class="stage">
+
+  <svg class="mark" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+    <circle cx="50" cy="50" r="7" fill="currentColor" stroke="none"/>
+    <path d="M50 40 C 40 30, 40 15, 50 8 C 60 15, 60 30, 50 40 Z"/>
+    <path d="M60 43 C 72 36, 85 38, 90 48 C 85 56, 70 58, 60 47 Z"/>
+    <path d="M60 57 C 72 64, 78 76, 72 86 C 62 84, 54 72, 58 60 Z"/>
+    <path d="M40 57 C 28 64, 22 76, 28 86 C 38 84, 46 72, 42 60 Z"/>
+    <path d="M40 43 C 28 36, 15 38, 10 48 C 15 56, 30 58, 40 47 Z"/>
+  </svg>
+
+  <div class="headline">
+    <p class="eyebrow">디 지 털 방 명 록</p>
+    <div class="deceased-row">
+      <input id="deceasedName" class="deceased-name-input" placeholder="고인 성함" />
+      <span class="deceased-suffix">님</span>
+    </div>
+    <p class="condolence-phrase">삼가 고인의 명복을 빕니다</p>
+  </div>
+
+  <div class="panel">
+
+    <div class="form-view" id="formView">
+
+      <div class="field-block">
+        <label for="fName">이름 *</label>
+        <input type="text" id="fName" placeholder="성함을 남겨주세요" />
+      </div>
+
+      <div class="field-block">
+        <label>고인과의 관계</label>
+        <div class="chip-row" id="relationChips">
+          <div class="chip" data-value="가족">가족</div>
+          <div class="chip" data-value="친척">친척</div>
+          <div class="chip" data-value="친구">친구</div>
+          <div class="chip" data-value="직장 동료">직장 동료</div>
+          <div class="chip" data-value="이웃">이웃</div>
+          <div class="chip" data-value="기타">기타</div>
+        </div>
+        <input type="text" id="relationOther" class="chip-other-input" placeholder="관계를 입력해주세요" />
+      </div>
+
+      <div class="field-block">
+        <label for="fMessage">추모의 메시지</label>
+        <textarea id="fMessage" placeholder="고인을 추모하는 마음을 전해주세요"></textarea>
+      </div>
+
+      <button class="submit-btn" id="submitBtn">마음을 전하기</button>
+    </div>
+
+    <div class="thanks-view" id="thanksView">
+      <svg class="mark" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+        <circle cx="50" cy="50" r="7" fill="currentColor" stroke="none"/>
+        <path d="M50 40 C 40 30, 40 15, 50 8 C 60 15, 60 30, 50 40 Z"/>
+        <path d="M60 43 C 72 36, 85 38, 90 48 C 85 56, 70 58, 60 47 Z"/>
+        <path d="M60 57 C 72 64, 78 76, 72 86 C 62 84, 54 72, 58 60 Z"/>
+        <path d="M40 57 C 28 64, 22 76, 28 86 C 38 84, 46 72, 42 60 Z"/>
+        <path d="M40 43 C 28 36, 15 38, 10 48 C 15 56, 30 58, 40 47 Z"/>
+      </svg>
+      <h2>마음을 전해주셨습니다</h2>
+      <p>따뜻한 위로에 감사드립니다.</p>
+    </div>
+
+  </div>
+
+  <div class="wall">
+    <p class="wall-caption" id="wallCaption">먼저 다녀가신 분들</p>
+    <div class="wall-grid" id="wallGrid"></div>
+    <div class="wall-empty" id="wallEmpty" style="display:none;">아직 남겨진 메시지가 없습니다.</div>
+  </div>
+
+</div>
+
+<script>
+const STORAGE_KEY = 'wall:messages';
+const NAME_KEY = 'wall:deceasedName';
+let messages = [];
+let selectedRelation = '';
+
+const $ = (id) => document.getElementById(id);
+
+function escapeHtml(s){
+  return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+async function loadDeceasedName(){
+  try{
+    const res = await window.storage.get(NAME_KEY, true);
+    if(res && res.value) $('deceasedName').value = res.value;
+  }catch(e){}
+}
+
+let nameSaveTimer = null;
+function saveDeceasedName(){
+  clearTimeout(nameSaveTimer);
+  nameSaveTimer = setTimeout(async ()=>{
+    try{ await window.storage.set(NAME_KEY, $('deceasedName').value.trim(), true); }catch(e){}
+  }, 400);
+}
+
+async function loadMessages(){
+  try{
+    const res = await window.storage.get(STORAGE_KEY, true);
+    if(res && res.value){
+      const parsed = JSON.parse(res.value);
+      messages = Array.isArray(parsed) ? parsed : [];
+    }
+  }catch(e){
+    messages = [];
+  }
+  renderWall();
+}
+
+async function saveMessages(){
+  try{
+    await window.storage.set(STORAGE_KEY, JSON.stringify(messages), true);
+  }catch(e){
+    console.error('저장 실패', e);
+  }
+}
+
+function renderWall(){
+  const grid = $('wallGrid');
+  const sorted = [...messages].sort((a,b)=>b.timestamp-a.timestamp).slice(0,8);
+  grid.innerHTML = '';
+  $('wallEmpty').style.display = sorted.length ? 'none' : 'block';
+  $('wallCaption').textContent = messages.length ? `먼저 다녀가신 분들 · 총 ${messages.length}명` : '먼저 다녀가신 분들';
+
+  sorted.forEach(m => {
+    const card = document.createElement('div');
+    card.className = 'wall-card';
+    card.innerHTML = `
+      <div class="wall-card-top">
+        <p class="wall-name">${escapeHtml(m.name)}</p>
+        ${m.relation ? `<span class="wall-relation">${escapeHtml(m.relation)}</span>` : ''}
+      </div>
+      ${m.message ? `<p class="wall-message">${escapeHtml(m.message)}</p>` : ''}
+    `;
+    grid.appendChild(card);
+  });
+}
+
+$('relationChips').addEventListener('click', (e)=>{
+  const chip = e.target.closest('.chip');
+  if(!chip) return;
+  const chips = $('relationChips').querySelectorAll('.chip');
+  chips.forEach(c=>c.classList.remove('selected'));
+  chip.classList.add('selected');
+  selectedRelation = chip.dataset.value;
+  const otherInput = $('relationOther');
+  if(selectedRelation === '기타'){
+    otherInput.classList.add('show');
+    otherInput.focus();
+  }else{
+    otherInput.classList.remove('show');
+    otherInput.value = '';
+  }
+});
+
+function resetForm(){
+  $('fName').value = '';
+  $('fMessage').value = '';
+  $('relationOther').value = '';
+  $('relationOther').classList.remove('show');
+  $('relationChips').querySelectorAll('.chip').forEach(c=>c.classList.remove('selected'));
+  selectedRelation = '';
+}
+
+async function handleSubmit(){
+  const name = $('fName').value.trim();
+  if(!name){
+    $('fName').classList.add('name-warn');
+    $('fName').focus();
+    setTimeout(()=> $('fName').classList.remove('name-warn'), 1200);
+    return;
+  }
+  const relation = selectedRelation === '기타' ? $('relationOther').value.trim() : selectedRelation;
+  const message = $('fMessage').value.trim();
+
+  messages.push({
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2,7),
+    name,
+    relation,
+    message,
+    timestamp: Date.now()
+  });
+  await saveMessages();
+  renderWall();
+  resetForm();
+
+  $('formView').style.display = 'none';
+  $('thanksView').style.display = 'block';
+  setTimeout(()=>{
+    $('thanksView').style.display = 'none';
+    $('formView').style.display = 'block';
+  }, 3200);
+}
+
+$('submitBtn').addEventListener('click', handleSubmit);
+$('deceasedName').addEventListener('input', saveDeceasedName);
+
+loadDeceasedName();
+loadMessages();
+</script>
+
+</body>
+</html>
