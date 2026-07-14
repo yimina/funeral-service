@@ -237,6 +237,21 @@ textarea::placeholder{color:var(--ink-faint);}
   padding:24px 0;
 }
 
+.export-btn{
+  display:block;
+  margin:28px auto 0;
+  padding:8px 4px;
+  background:none;
+  border:none;
+  color:var(--ink-faint);
+  font-family:'Noto Sans KR',sans-serif;
+  font-size:12px;
+  cursor:pointer;
+  text-decoration:underline;
+  text-underline-offset:3px;
+}
+.export-btn:hover{color:var(--ink-soft);}
+
 @media (max-width:480px){
   .stage{padding:40px 20px 48px;}
   .deceased-name-input{font-size:26px;}
@@ -316,11 +331,25 @@ textarea::placeholder{color:var(--ink-faint);}
     <div class="wall-empty" id="wallEmpty" style="display:none;">아직 남겨진 메시지가 없습니다.</div>
   </div>
 
+  <button class="export-btn" id="exportBtn">방명록 CSV로 내보내기</button>
+
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script>
-const STORAGE_KEY = 'wall:messages';
-const NAME_KEY = 'wall:deceasedName';
+const firebaseConfig = {
+  apiKey: "AIzaSyChhxo8FKx7Ih--6D1lgL58dAmZYJVW8es",
+  authDomain: "digital-guestbook-78eb2.firebaseapp.com",
+  databaseURL: "https://digital-guestbook-78eb2-default-rtdb.firebaseio.com",
+  projectId: "digital-guestbook-78eb2",
+  storageBucket: "digital-guestbook-78eb2.firebasestorage.app",
+  messagingSenderId: "1029458818634",
+  appId: "1:1029458818634:web:c78228dbe477b778a198b3"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
 let messages = [];
 let selectedRelation = '';
 
@@ -330,40 +359,34 @@ function escapeHtml(s){
   return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-async function loadDeceasedName(){
-  try{
-    const res = await window.storage.get(NAME_KEY, true);
-    if(res && res.value) $('deceasedName').value = res.value;
-  }catch(e){}
+function listenDeceasedName(){
+  db.ref('deceasedName').on('value', (snap)=>{
+    const val = snap.val();
+    if(val && document.activeElement !== $('deceasedName')){
+      $('deceasedName').value = val;
+    }
+  }, (err)=>console.error('이름 불러오기 실패', err));
 }
 
 let nameSaveTimer = null;
 function saveDeceasedName(){
   clearTimeout(nameSaveTimer);
-  nameSaveTimer = setTimeout(async ()=>{
-    try{ await window.storage.set(NAME_KEY, $('deceasedName').value.trim(), true); }catch(e){}
+  nameSaveTimer = setTimeout(()=>{
+    db.ref('deceasedName').set($('deceasedName').value.trim())
+      .catch(e=>console.error('이름 저장 실패', e));
   }, 400);
 }
 
-async function loadMessages(){
-  try{
-    const res = await window.storage.get(STORAGE_KEY, true);
-    if(res && res.value){
-      const parsed = JSON.parse(res.value);
-      messages = Array.isArray(parsed) ? parsed : [];
-    }
-  }catch(e){
-    messages = [];
-  }
-  renderWall();
+function listenMessages(){
+  db.ref('messages').on('value', (snap)=>{
+    const val = snap.val() || {};
+    messages = Object.keys(val).map(key => ({ id: key, ...val[key] }));
+    renderWall();
+  }, (err)=>console.error('메시지 불러오기 실패', err));
 }
 
-async function saveMessages(){
-  try{
-    await window.storage.set(STORAGE_KEY, JSON.stringify(messages), true);
-  }catch(e){
-    console.error('저장 실패', e);
-  }
+async function addMessage(entry){
+  await db.ref('messages').push(entry);
 }
 
 function renderWall(){
@@ -424,15 +447,11 @@ async function handleSubmit(){
   const relation = selectedRelation === '기타' ? $('relationOther').value.trim() : selectedRelation;
   const message = $('fMessage').value.trim();
 
-  messages.push({
-    id: Date.now().toString(36) + Math.random().toString(36).slice(2,7),
-    name,
-    relation,
-    message,
-    timestamp: Date.now()
-  });
-  await saveMessages();
-  renderWall();
+  try{
+    await addMessage({ name, relation, message, timestamp: Date.now() });
+  }catch(e){
+    console.error('메시지 저장 실패', e);
+  }
   resetForm();
 
   $('formView').style.display = 'none';
@@ -443,11 +462,41 @@ async function handleSubmit(){
   }, 3200);
 }
 
+function csvEscape(v){
+  const s = (v===undefined || v===null) ? '' : String(v);
+  if(/[",\n]/.test(s)) return '"' + s.replace(/"/g,'""') + '"';
+  return s;
+}
+
+function exportCsv(){
+  const rows = [['이름','고인과의 관계','메시지','남긴 시각']];
+  [...messages].sort((a,b)=>a.timestamp-b.timestamp).forEach(m=>{
+    rows.push([
+      m.name || '',
+      m.relation || '',
+      m.message || '',
+      new Date(m.timestamp).toLocaleString('ko-KR')
+    ]);
+  });
+  const csvContent = '\uFEFF' + rows.map(r => r.map(csvEscape).join(',')).join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const nameForFile = ($('deceasedName').value.trim() || '방명록');
+  a.href = url;
+  a.download = `${nameForFile}_방명록.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 $('submitBtn').addEventListener('click', handleSubmit);
 $('deceasedName').addEventListener('input', saveDeceasedName);
+$('exportBtn').addEventListener('click', exportCsv);
 
-loadDeceasedName();
-loadMessages();
+listenDeceasedName();
+listenMessages();
 </script>
 
 </body>
