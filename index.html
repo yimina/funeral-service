@@ -350,6 +350,17 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
+const SHEET_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyI5WPtHebgBLuKiPoQVBue-8vJG7ee4XMMxHQMJBitsvfb5iOONoMGzTEh2pa2TC6zlg/exec";
+
+function sendToSheet(entry){
+  fetch(SHEET_WEBHOOK_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(entry)
+  }).catch(e => console.error('구글 시트 전송 실패', e));
+}
+
 let messages = [];
 let selectedRelation = '';
 
@@ -452,6 +463,7 @@ async function handleSubmit(){
   }catch(e){
     console.error('메시지 저장 실패', e);
   }
+  sendToSheet({ name, relation, message, timestamp: Date.now() });
   resetForm();
 
   $('formView').style.display = 'none';
