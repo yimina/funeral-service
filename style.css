@@ -130,6 +130,15 @@ body {
   color: var(--accent-gold);
 }
 
+.baptismal-line {
+  display: block;
+  font-size: 1.1rem;
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
 .header-tribute .sub-message {
   font-family: var(--font-serif);
   font-size: 1.1rem;

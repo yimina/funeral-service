@@ -8,6 +8,7 @@
 //    (연동 시) 구글 스프레드시트에 저장되어 유지됩니다.
 const DEFAULT_DECEASED_INFO = {
   name: "성함을 입력해주세요",
+  baptismalName: "",
   passing: "",
   spouse: "",
   sons: "",
@@ -55,7 +56,9 @@ let state = {
 const DOM = {
   // Tribute info
   deceasedMainTitle: document.getElementById("deceased-main-title"),
+  deceasedBaptismalLine: document.getElementById("deceased-baptismal-line"),
   deceasedName: document.getElementById("deceased-name"),
+  deceasedBaptismal: document.getElementById("deceased-baptismal"),
   deceasedPassing: document.getElementById("deceased-passing"),
   deceasedSpouse: document.getElementById("deceased-spouse"),
   deceasedSons: document.getElementById("deceased-sons"),
@@ -165,7 +168,18 @@ function checkSessionAdmin() {
 // 6. UI 렌더링 함수
 function renderDeceasedInfo() {
   if (DOM.deceasedMainTitle) DOM.deceasedMainTitle.textContent = "故 " + (state.deceasedInfo.name || "");
+  if (DOM.deceasedBaptismalLine) {
+    const baptismal = state.deceasedInfo.baptismalName;
+    if (baptismal) {
+      DOM.deceasedBaptismalLine.textContent = `(세례명: ${baptismal})`;
+      DOM.deceasedBaptismalLine.style.display = "block";
+    } else {
+      DOM.deceasedBaptismalLine.textContent = "";
+      DOM.deceasedBaptismalLine.style.display = "none";
+    }
+  }
   if (DOM.deceasedName) DOM.deceasedName.textContent = state.deceasedInfo.name || "";
+  if (DOM.deceasedBaptismal) DOM.deceasedBaptismal.textContent = state.deceasedInfo.baptismalName || "";
   if (DOM.deceasedPassing) DOM.deceasedPassing.textContent = state.deceasedInfo.passing || "";
   if (DOM.deceasedSpouse) DOM.deceasedSpouse.textContent = state.deceasedInfo.spouse || "";
   if (DOM.deceasedSons) DOM.deceasedSons.textContent = state.deceasedInfo.sons || "";
@@ -551,6 +565,10 @@ function showAdminSettingsModal() {
         <input type="text" id="edit-deceased-name" class="input-field" value="${state.deceasedInfo.name}">
       </div>
       <div class="form-group">
+        <label>세례명 (선택)</label>
+        <input type="text" id="edit-deceased-baptismal" class="input-field" value="${state.deceasedInfo.baptismalName || ''}" placeholder="예: 요한, 마리아">
+      </div>
+      <div class="form-group">
         <label>별세 일시</label>
         <input type="text" id="edit-deceased-passing" class="input-field" value="${state.deceasedInfo.passing || ''}">
       </div>
@@ -587,6 +605,7 @@ function showAdminSettingsModal() {
   
   openModal("관리자 환경 설정", bodyHTML, () => {
     const newName = document.getElementById("edit-deceased-name").value.trim();
+    const newBaptismal = document.getElementById("edit-deceased-baptismal").value.trim();
     const newPassing = document.getElementById("edit-deceased-passing").value.trim();
     const newSpouse = document.getElementById("edit-deceased-spouse").value.trim();
     const newSons = document.getElementById("edit-deceased-sons").value.trim();
@@ -601,6 +620,7 @@ function showAdminSettingsModal() {
     // 변경점 적용 및 로컬 저장
     state.deceasedInfo = { 
       name: newName, 
+      baptismalName: newBaptismal,
       passing: newPassing, 
       spouse: newSpouse,
       sons: newSons,
