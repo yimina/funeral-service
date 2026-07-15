@@ -525,7 +525,7 @@ function showAdminLoginModal() {
   
   openModal("관리자 인증", bodyHTML, () => {
     const input = document.getElementById("admin-pw-input").value;
-    if (input === state.adminPassword) {
+    if (String(input) === String(state.adminPassword)) {
       enableAdminMode();
       showToast("관리자 모드가 활성화되었습니다.", "success");
       if (state.adminPassword === DEFAULT_ADMIN_PASSWORD) {
