@@ -17,6 +17,11 @@ const DEFAULT_DECEASED_INFO = {
 // 최초 배포 시 반드시 관리자 모드에서 비밀번호를 변경해 주세요.
 const DEFAULT_ADMIN_PASSWORD = "0000";
 
+// PC/모바일 등 기기마다 따로 설정하지 않아도 항상 같은 데이터(방명록/장례정보/비밀번호)를
+// 쓰도록 하려면, 배포한 구글 앱스 스크립트 웹 앱 URL을 아래에 붙여넣으세요.
+// (관리자 설정 화면에서 입력해도 되지만, 그 경우 그 브라우저에서만 적용됩니다.)
+const DEFAULT_GOOGLE_SHEETS_URL = "";
+
 // 최초 실행 시 화면 구성을 보여주기 위한 예시 메시지 (실제 조문객 정보 아님)
 const SEED_MESSAGES = [
   {
@@ -129,6 +134,9 @@ function loadLocalStorage() {
   const savedUrl = localStorage.getItem("gb_gs_url");
   if (savedUrl) {
     state.googleSheetsUrl = savedUrl;
+  } else if (DEFAULT_GOOGLE_SHEETS_URL) {
+    state.googleSheetsUrl = DEFAULT_GOOGLE_SHEETS_URL;
+    localStorage.setItem("gb_gs_url", DEFAULT_GOOGLE_SHEETS_URL);
   }
   
   // 메시지 리스트 로드
@@ -280,9 +288,16 @@ function fetchFromGoogleSheets() {
       if (resData.status === "success") {
         // 1. 장례 정보 동기화 (시트에 저장된 정보가 있다면 우선 적용)
         if (resData.deceasedInfo) {
-          state.deceasedInfo = resData.deceasedInfo;
+          const { adminPassword, ...tributeInfo } = resData.deceasedInfo;
+          state.deceasedInfo = tributeInfo;
           localStorage.setItem("gb_deceased_info", JSON.stringify(state.deceasedInfo));
           renderDeceasedInfo();
+
+          // 관리자 비밀번호도 시트 값으로 동기화 (기기 간 공통 적용)
+          if (adminPassword) {
+            state.adminPassword = adminPassword;
+            localStorage.setItem("gb_admin_password", adminPassword);
+          }
         }
         
         // 2. 방명록 목록 동기화
@@ -362,7 +377,7 @@ function syncInfoToGoogleSheets() {
     },
     body: JSON.stringify({
       action: "update_info",
-      data: state.deceasedInfo
+      data: { ...state.deceasedInfo, adminPassword: state.adminPassword }
     })
   })
   .then(() => {
@@ -609,11 +624,11 @@ function showAdminSettingsModal() {
     localStorage.setItem("gb_deceased_info", JSON.stringify(state.deceasedInfo));
     renderDeceasedInfo();
     
-    // 구글 스프레드시트에 장례 정보 실시간 업데이트
-    syncInfoToGoogleSheets();
-    
     state.adminPassword = newPassword;
     localStorage.setItem("gb_admin_password", newPassword);
+    
+    // 구글 스프레드시트에 장례 정보 + 관리자 비밀번호 실시간 업데이트 (기기 간 동기화)
+    syncInfoToGoogleSheets();
     
     const urlChanged = state.googleSheetsUrl !== newGsUrl;
     state.googleSheetsUrl = newGsUrl;
