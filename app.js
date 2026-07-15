@@ -320,7 +320,7 @@ function fetchFromGoogleSheets() {
           saveMessagesToLocalStorage();
           renderMessages();
           updateGoogleSheetsBadge("connected");
-          showToast("구글 시트로부터 실시간 동기화되었습니다.", "success");
+          //showToast("구글 시트로부터 실시간 동기화되었습니다.", "success");
         }
       } else {
         throw new Error(resData.message || "동기화 실패");
