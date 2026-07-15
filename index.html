@@ -1,582 +1,177 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>디지털 방명록</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
-
-:root{
-  --paper:#F7F4EC;
-  --paper-deep:#EFEADC;
-  --ink:#1E1C19;
-  --ink-soft:#6B675E;
-  --ink-faint:#9A9689;
-  --line:#DAD3C0;
-  --line-soft:#E7E1D2;
-  --navy:#2C3852;
-  --navy-hover:#1B2438;
-  --navy-soft:#E7EAF1;
-  --brick:#8C4A3A;
-}
-
-*{box-sizing:border-box;}
-html,body{margin:0;padding:0;}
-body{
-  background:var(--paper);
-  color:var(--ink);
-  font-family:'Noto Sans KR',sans-serif;
-  min-height:100vh;
-}
-
-.stage{
-  max-width:600px;
-  margin:0 auto;
-  padding:56px 28px 64px;
-  min-height:100vh;
-  display:flex;
-  flex-direction:column;
-}
-
-.mark{
-  width:52px;height:52px;
-  color:var(--navy);
-  margin:0 auto 20px;
-  display:block;
-}
-
-.headline{text-align:center;margin-bottom:44px;}
-.eyebrow{
-  font-size:13px;
-  letter-spacing:0.22em;
-  color:var(--ink-soft);
-  margin:0 0 14px;
-}
-.deceased-row{
-  display:flex;
-  align-items:baseline;
-  justify-content:center;
-  gap:8px;
-  flex-wrap:wrap;
-}
-.deceased-name-input{
-  font-family:'Noto Serif KR',serif;
-  font-weight:700;
-  font-size:34px;
-  color:var(--ink);
-  background:transparent;
-  border:none;
-  border-bottom:1px solid transparent;
-  outline:none;
-  text-align:center;
-  padding:2px 0;
-  width:auto;
-  min-width:80px;
-}
-.deceased-name-input::placeholder{color:var(--ink-faint);font-weight:500;}
-.deceased-name-input:hover,.deceased-name-input:focus{border-bottom:1px solid var(--line);}
-.deceased-suffix{font-family:'Noto Serif KR',serif;font-size:22px;color:var(--ink-soft);}
-.condolence-phrase{
-  font-family:'Noto Serif KR',serif;
-  font-size:15px;
-  color:var(--ink-soft);
-  margin:14px 0 0;
-}
-
-.panel{flex:1;position:relative;}
-
-.form-view, .thanks-view{
-  transition:opacity .35s ease;
-}
-.thanks-view{
-  display:none;
-  text-align:center;
-  padding:64px 10px;
-}
-.thanks-view .mark{color:var(--navy);width:44px;height:44px;margin-bottom:22px;}
-.thanks-view h2{
-  font-family:'Noto Serif KR',serif;
-  font-size:24px;
-  font-weight:600;
-  margin:0 0 10px;
-}
-.thanks-view p{
-  font-size:14px;
-  color:var(--ink-soft);
-  margin:0;
-}
-
-.field-block{margin-bottom:26px;}
-.field-block label{
-  display:block;
-  font-size:13px;
-  color:var(--ink-soft);
-  margin-bottom:10px;
-}
-.field-block input[type=text]{
-  width:100%;
-  font-family:'Noto Sans KR',sans-serif;
-  font-size:18px;
-  color:var(--ink);
-  background:var(--paper-deep);
-  border:1px solid var(--line);
-  padding:14px 16px;
-  outline:none;
-}
-.field-block input[type=text]:focus{border-color:var(--navy);}
-.field-block input::placeholder{color:var(--ink-faint);}
-
-.chip-row{
-  display:flex;
-  flex-wrap:wrap;
-  gap:10px;
-}
-.chip{
-  padding:10px 18px;
-  font-size:15px;
-  border:1px solid var(--line);
-  background:var(--paper-deep);
-  color:var(--ink-soft);
-  cursor:pointer;
-  user-select:none;
-}
-.chip.selected{
-  background:var(--navy);
-  border-color:var(--navy);
-  color:var(--paper);
-}
-.chip-other-input{
-  display:none;
-  margin-top:12px;
-}
-.chip-other-input.show{display:block;}
-
-textarea{
-  width:100%;
-  min-height:120px;
-  font-family:'Noto Sans KR',sans-serif;
-  font-size:17px;
-  line-height:1.6;
-  color:var(--ink);
-  background:var(--paper-deep);
-  border:1px solid var(--line);
-  padding:14px 16px;
-  outline:none;
-  resize:vertical;
-}
-textarea:focus{border-color:var(--navy);}
-textarea::placeholder{color:var(--ink-faint);}
-
-.submit-btn{
-  width:100%;
-  padding:18px;
-  margin-top:6px;
-  background:var(--navy);
-  color:var(--paper);
-  border:none;
-  font-family:'Noto Sans KR',sans-serif;
-  font-size:17px;
-  font-weight:600;
-  letter-spacing:0.02em;
-  cursor:pointer;
-  transition:background .15s;
-}
-.submit-btn:hover{background:var(--navy-hover);}
-.submit-btn:active{transform:scale(0.99);}
-
-.name-warn{
-  border-color:var(--brick) !important;
-}
-
-.wall{
-  margin-top:56px;
-  padding-top:28px;
-  border-top:1px solid var(--line);
-}
-.wall-caption{
-  font-size:13px;
-  color:var(--ink-soft);
-  text-align:center;
-  margin:0 0 20px;
-}
-.wall-grid{
-  display:flex;
-  flex-direction:column;
-  gap:1px;
-  background:var(--line-soft);
-}
-.wall-card{
-  background:var(--paper);
-  padding:16px 18px;
-}
-.wall-card-top{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  margin-bottom:6px;
-}
-.wall-name{font-weight:600;font-size:14px;margin:0;}
-.wall-relation{
-  font-size:11px;
-  color:var(--navy);
-  background:var(--navy-soft);
-  padding:2px 8px;
-}
-.wall-message{
-  font-size:14px;
-  color:var(--ink-soft);
-  margin:0;
-  line-height:1.6;
-  word-break:break-word;
-}
-.wall-empty{
-  text-align:center;
-  color:var(--ink-faint);
-  font-size:13px;
-  padding:24px 0;
-}
-
-.export-btn{
-  display:block;
-  margin:28px auto 0;
-  padding:8px 4px;
-  background:none;
-  border:none;
-  color:var(--ink-faint);
-  font-family:'Noto Sans KR',sans-serif;
-  font-size:12px;
-  cursor:pointer;
-  text-decoration:underline;
-  text-underline-offset:3px;
-}
-.export-btn:hover{color:var(--ink-soft);}
-
-.footer-links{
-  display:flex;
-  justify-content:center;
-  gap:18px;
-  margin-top:28px;
-}
-.footer-links .export-btn{margin:0;}
-
-.wall-card{
-  display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
-  gap:12px;
-}
-.wall-card-body{flex:1;min-width:0;}
-.wall-delete-btn{
-  display:none;
-  flex:none;
-  background:none;
-  border:1px solid var(--line);
-  color:var(--brick);
-  font-size:12px;
-  padding:5px 10px;
-  cursor:pointer;
-}
-.wall-delete-btn:hover{background:var(--brick);color:var(--paper);border-color:var(--brick);}
-body.admin-mode .wall-delete-btn{display:block;}
-body.admin-mode #adminBtn{color:var(--navy);}
-
-@media (max-width:480px){
-  .stage{padding:40px 20px 48px;}
-  .deceased-name-input{font-size:26px;}
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>모바일/웹 추모 방명록 - 삼가 고인의 명복을 빕니다</title>
+  
+  <!-- SEO 메타 데이터 -->
+  <meta name="description" content="故인을 조문하며 소중한 위로의 마음을 나누는 모바일 방명록 서비스입니다.">
+  <meta name="keywords" content="방명록, 추모, 장례식장, 모바일방명록, 온라인조문">
+  
+  <!-- 스타일시트 로드 -->
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div class="stage">
-
-  <svg class="mark" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-    <circle cx="50" cy="50" r="7" fill="currentColor" stroke="none"/>
-    <path d="M50 40 C 40 30, 40 15, 50 8 C 60 15, 60 30, 50 40 Z"/>
-    <path d="M60 43 C 72 36, 85 38, 90 48 C 85 56, 70 58, 60 47 Z"/>
-    <path d="M60 57 C 72 64, 78 76, 72 86 C 62 84, 54 72, 58 60 Z"/>
-    <path d="M40 57 C 28 64, 22 76, 28 86 C 38 84, 46 72, 42 60 Z"/>
-    <path d="M40 43 C 28 36, 15 38, 10 48 C 15 56, 30 58, 40 47 Z"/>
-  </svg>
-
-  <div class="headline">
-    <p class="eyebrow">디 지 털 방 명 록</p>
-    <div class="deceased-row">
-      <input id="deceasedName" class="deceased-name-input" placeholder="고인 성함" value="조정성" />
-      <span class="deceased-suffix">님</span>
+  <!-- 1. 관리자 상단 바 (관리자 모드 로그인 시 노출) -->
+  <div id="admin-top-bar" class="admin-top-bar">
+    <div class="admin-controls-group">
+      <span>⚙️ 관리자 모드 실행 중</span>
+      <span id="gs-status-badge" class="visitor-relation">로컬 저장소 전용 모드</span>
     </div>
-    <p class="condolence-phrase">삼가 고인의 명복을 빕니다</p>
+    <div class="admin-controls-group">
+      <button id="admin-settings-btn" class="admin-btn">환경 설정</button>
+      <button id="admin-export-btn" class="admin-btn">엑셀(CSV) 다운로드</button>
+      <button id="admin-logout-btn" class="admin-btn logout-btn">로그아웃</button>
+    </div>
   </div>
 
-  <div class="panel">
-
-    <div class="form-view" id="formView">
-
-      <div class="field-block">
-        <label for="fName">이름 *</label>
-        <input type="text" id="fName" placeholder="성함을 남겨주세요" />
+  <div class="container">
+    
+    <!-- 2. 헤더 & 추모 정보 -->
+    <header class="header-tribute">
+      <!-- 촛불 SVG 그래픽 -->
+      <div class="candle-area">
+        <svg class="candle-svg" width="60" height="85" viewBox="0 0 60 85" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- 촛대 심지 -->
+          <line x1="30" y1="32" x2="30" y2="42" stroke="#3A2E26" stroke-width="2"/>
+          <!-- 촛불 (애니메이션 적용 타겟) -->
+          <path class="flame" d="M30 5C36 18 37 32 30 32C23 32 24 18 30 5Z" fill="url(#flameGradient)"/>
+          <!-- 초 몸통 -->
+          <path d="M16 42H44V85H16V42Z" fill="url(#candleGradient)" rx="2"/>
+          <!-- 흘러내린 촛농 묘사 -->
+          <path d="M16 42C21 44 26 40 31 43C36 46 41 42 44 42V48C41 48 36 50 31 47C26 45 21 49 16 48V42Z" fill="#D4BD9C" opacity="0.6"/>
+          
+          <defs>
+            <linearGradient id="flameGradient" x1="30" y1="5" x2="30" y2="32" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#FFEBB3"/>
+              <stop offset="35%" stop-color="#FFA826"/>
+              <stop offset="100%" stop-color="#FF4000"/>
+            </linearGradient>
+            <linearGradient id="candleGradient" x1="16" y1="42" x2="44" y2="85" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#DFCFB7"/>
+              <stop offset="50%" stop-color="#C5A880"/>
+              <stop offset="100%" stop-color="#99774E"/>
+            </linearGradient>
+          </defs>
+        </svg>
       </div>
-
-      <div class="field-block">
-        <label>고인과의 관계</label>
-        <div class="chip-row" id="relationChips">
-          <div class="chip" data-value="가족">가족</div>
-          <div class="chip" data-value="친척">친척</div>
-          <div class="chip" data-value="친구">친구</div>
-          <div class="chip" data-value="직장 동료">직장 동료</div>
-          <div class="chip" data-value="이웃">이웃</div>
-          <div class="chip" data-value="기타">기타</div>
+      
+      <h1>
+        <span class="deceased-main-title">故 조정성 방지거</span>
+        <span class="tribute-sub-title">삼가 고인의 명복을 빕니다</span>
+      </h1>
+      <p class="sub-message">모바일 추모 방명록</p>
+      
+      <!-- 故인 및 장례 정보 표시 카드 -->
+      <div class="deceased-info">
+        <div class="deceased-info-row">
+          <div class="deceased-info-label">고인</div>
+          <div class="deceased-info-value bold">故 <span id="deceased-name">조정성 방지거</span></div>
         </div>
-        <input type="text" id="relationOther" class="chip-other-input" placeholder="관계를 입력해주세요" />
-      </div>
-
-      <div class="field-block">
-        <label for="fMessage">추모의 메시지</label>
-        <textarea id="fMessage" placeholder="고인을 추모하는 마음을 전해주세요"></textarea>
-      </div>
-
-      <button class="submit-btn" id="submitBtn">마음을 전하기</button>
-    </div>
-
-    <div class="thanks-view" id="thanksView">
-      <svg class="mark" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-        <circle cx="50" cy="50" r="7" fill="currentColor" stroke="none"/>
-        <path d="M50 40 C 40 30, 40 15, 50 8 C 60 15, 60 30, 50 40 Z"/>
-        <path d="M60 43 C 72 36, 85 38, 90 48 C 85 56, 70 58, 60 47 Z"/>
-        <path d="M60 57 C 72 64, 78 76, 72 86 C 62 84, 54 72, 58 60 Z"/>
-        <path d="M40 57 C 28 64, 22 76, 28 86 C 38 84, 46 72, 42 60 Z"/>
-        <path d="M40 43 C 28 36, 15 38, 10 48 C 15 56, 30 58, 40 47 Z"/>
-      </svg>
-      <h2>마음을 전해주셨습니다</h2>
-      <p>따뜻한 위로에 감사드립니다.</p>
-    </div>
-
-  </div>
-
-  <div class="wall">
-    <p class="wall-caption" id="wallCaption">먼저 다녀가신 분들</p>
-    <div class="wall-grid" id="wallGrid"></div>
-    <div class="wall-empty" id="wallEmpty" style="display:none;">아직 남겨진 메시지가 없습니다.</div>
-  </div>
-
-  <div class="footer-links">
-    <button class="export-btn" id="exportBtn">방명록 CSV로 내보내기</button>
-    <button class="export-btn" id="adminBtn">관리자 모드</button>
-  </div>
-
-</div>
-
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script>
-const firebaseConfig = {
-  apiKey: "AIzaSyChhxo8FKx7Ih--6D1lgL58dAmZYJVW8es",
-  authDomain: "digital-guestbook-78eb2.firebaseapp.com",
-  databaseURL: "https://digital-guestbook-78eb2-default-rtdb.firebaseio.com",
-  projectId: "digital-guestbook-78eb2",
-  storageBucket: "digital-guestbook-78eb2.firebasestorage.app",
-  messagingSenderId: "1029458818634",
-  appId: "1:1029458818634:web:c78228dbe477b778a198b3"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-
-const SHEET_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbz_7lpUoiJih_EbcXMpOMCAR8t-pZ1Zs6iFbw_-JG9NdBzJfohHQ7yXdmDbEsPCwJXUdQ/exec";
-
-function sendToSheet(entry){
-  fetch(SHEET_WEBHOOK_URL, {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify(entry)
-  }).catch(e => console.error('구글 시트 전송 실패', e));
-}
-
-let messages = [];
-let selectedRelation = '';
-
-const $ = (id) => document.getElementById(id);
-
-function escapeHtml(s){
-  return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-
-function listenDeceasedName(){
-  db.ref('deceasedName').on('value', (snap)=>{
-    const val = snap.val();
-    if(val && document.activeElement !== $('deceasedName')){
-      $('deceasedName').value = val;
-    }
-  }, (err)=>console.error('이름 불러오기 실패', err));
-}
-
-let nameSaveTimer = null;
-function saveDeceasedName(){
-  clearTimeout(nameSaveTimer);
-  nameSaveTimer = setTimeout(()=>{
-    db.ref('deceasedName').set($('deceasedName').value.trim())
-      .catch(e=>console.error('이름 저장 실패', e));
-  }, 400);
-}
-
-function listenMessages(){
-  db.ref('messages').on('value', (snap)=>{
-    const val = snap.val() || {};
-    messages = Object.keys(val).map(key => ({ id: key, ...val[key] }));
-    renderWall();
-  }, (err)=>console.error('메시지 불러오기 실패', err));
-}
-
-async function addMessage(entry){
-  const newRef = db.ref('messages').push();
-  entry.id = newRef.key;
-  await newRef.set(entry);
-  return newRef.key;
-}
-
-function renderWall(){
-  const grid = $('wallGrid');
-  const sorted = [...messages].sort((a,b)=>b.timestamp-a.timestamp).slice(0,8);
-  grid.innerHTML = '';
-  $('wallEmpty').style.display = sorted.length ? 'none' : 'block';
-  $('wallCaption').textContent = messages.length ? `먼저 다녀가신 분들 · 총 ${messages.length}명` : '먼저 다녀가신 분들';
-
-  sorted.forEach(m => {
-    const card = document.createElement('div');
-    card.className = 'wall-card';
-    card.innerHTML = `
-      <div class="wall-card-body">
-        <div class="wall-card-top">
-          <p class="wall-name">${escapeHtml(m.name)}</p>
-          ${m.relation ? `<span class="wall-relation">${escapeHtml(m.relation)}</span>` : ''}
+        <div class="deceased-info-row">
+          <div class="deceased-info-label">별세</div>
+          <div class="deceased-info-value" id="deceased-passing">2026년 7월 15일 오전 9시</div>
         </div>
-        ${m.message ? `<p class="wall-message">${escapeHtml(m.message)}</p>` : ''}
+        <div class="deceased-info-row">
+          <div class="deceased-info-label">배우자</div>
+          <div class="deceased-info-value" id="deceased-spouse">김명자</div>
+        </div>
+        <div class="deceased-info-row">
+          <div class="deceased-info-label">아들</div>
+          <div class="deceased-info-value" id="deceased-sons">조경회, 조충회</div>
+        </div>
+        <div class="deceased-info-row">
+          <div class="deceased-info-label">딸</div>
+          <div class="deceased-info-value" id="deceased-daughters">조은회</div>
+        </div>
       </div>
-      <button class="wall-delete-btn" data-delete="${m.id}">삭제</button>
-    `;
-    grid.appendChild(card);
-  });
+      <div>
+        <button class="edit-info-btn" onclick="openDirectDeceasedEdit()">장례 정보 수정</button>
+      </div>
+    </header>
 
-  grid.querySelectorAll('[data-delete]').forEach(btn=>{
-    btn.addEventListener('click', ()=> deleteMessage(btn.dataset.delete));
-  });
-}
+    <main>
+      <!-- 3. 방명록 작성 카드 -->
+      <section class="card">
+        <h2 class="card-title">
+          <!-- 펜 아이콘 SVG -->
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 20h9"></path>
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+          </svg>
+          추모의 글 남기기
+        </h2>
+        <form id="guestbook-form">
+          <div class="form-group-row">
+            <div class="form-group">
+              <label for="visitor-name">조문객 성함</label>
+              <input type="text" id="visitor-name" class="input-field" placeholder="성함을 입력해주세요" required autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label for="visitor-relation">고인과의 관계 / 소속</label>
+              <select id="visitor-relation" class="input-field" required>
+                <option value="" disabled selected>관계를 선택해주세요</option>
+                <option value="가족/친지">가족 / 친지</option>
+                <option value="친구">친구</option>
+                <option value="직장/단체">직장 / 단체</option>
+                <option value="기타">기타 (이웃, 지인 등)</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="visitor-message">추모 메시지</label>
+            <textarea id="visitor-message" class="input-field" placeholder="따뜻한 위로와 아버님을 추모하는 한마디를 남겨주세요." required></textarea>
+          </div>
+          <button type="submit" class="submit-btn">추모 글 등록</button>
+        </form>
+      </section>
 
-$('relationChips').addEventListener('click', (e)=>{
-  const chip = e.target.closest('.chip');
-  if(!chip) return;
-  const chips = $('relationChips').querySelectorAll('.chip');
-  chips.forEach(c=>c.classList.remove('selected'));
-  chip.classList.add('selected');
-  selectedRelation = chip.dataset.value;
-  const otherInput = $('relationOther');
-  if(selectedRelation === '기타'){
-    otherInput.classList.add('show');
-    otherInput.focus();
-  }else{
-    otherInput.classList.remove('show');
-    otherInput.value = '';
-  }
-});
+      <!-- 4. 방명록 목록 피드 & 필터 -->
+      <section>
+        <div class="search-filter-section">
+          <div class="form-group">
+            <label for="search-input">방명록 검색</label>
+            <input type="text" id="search-input" class="input-field" placeholder="조문객 이름 또는 메시지로 찾기..." autocomplete="off">
+          </div>
+          <!-- 빠른 필터 바 -->
+          <div id="filter-bar" class="filter-bar">
+            <!-- JS로 버튼 동적 렌더링 -->
+          </div>
+        </div>
 
-function resetForm(){
-  $('fName').value = '';
-  $('fMessage').value = '';
-  $('relationOther').value = '';
-  $('relationOther').classList.remove('show');
-  $('relationChips').querySelectorAll('.chip').forEach(c=>c.classList.remove('selected'));
-  selectedRelation = '';
-}
+        <!-- 방명록 리스트 -->
+        <div id="guestbook-list" class="guestbook-list">
+          <!-- JS로 방명록 카드 동적 렌더링 -->
+        </div>
+      </section>
+    </main>
 
-async function handleSubmit(){
-  const name = $('fName').value.trim();
-  if(!name){
-    $('fName').classList.add('name-warn');
-    $('fName').focus();
-    setTimeout(()=> $('fName').classList.remove('name-warn'), 1200);
-    return;
-  }
-  const relation = selectedRelation === '기타' ? $('relationOther').value.trim() : selectedRelation;
-  const message = $('fMessage').value.trim();
+    <!-- 5. 푸터 영역 -->
+    <footer class="admin-footer">
+      <button id="admin-login-btn" class="admin-login-link">유가족 관리자 모드</button>
+    </footer>
+  </div>
 
-  let newId = null;
-  try{
-    newId = await addMessage({ name, relation, message, timestamp: Date.now() });
-  }catch(e){
-    console.error('메시지 저장 실패', e);
-  }
-  sendToSheet({ action: 'create', id: newId, name, relation, message, timestamp: Date.now() });
-  resetForm();
+  <!-- 6. 공용 모달 창 레이아웃 -->
+  <div id="modal-overlay" class="modal-overlay">
+    <div class="modal-content">
+      <h2 id="modal-title" class="modal-header">알림</h2>
+      <div id="modal-body">
+        <!-- 모달 본문 영역 (JS 주입) -->
+      </div>
+      <div class="modal-buttons">
+        <button id="modal-cancel-btn" class="modal-btn modal-btn-cancel">취소</button>
+        <button id="modal-confirm-btn" class="modal-btn modal-btn-confirm">확인</button>
+      </div>
+    </div>
+  </div>
 
-  $('formView').style.display = 'none';
-  $('thanksView').style.display = 'block';
-  setTimeout(()=>{
-    $('thanksView').style.display = 'none';
-    $('formView').style.display = 'block';
-  }, 3200);
-}
+  <!-- 7. 알림 메시지 토스트 컨테이너 -->
+  <div id="toast-container" class="toast-container"></div>
 
-function csvEscape(v){
-  const s = (v===undefined || v===null) ? '' : String(v);
-  if(/[",\n]/.test(s)) return '"' + s.replace(/"/g,'""') + '"';
-  return s;
-}
-
-function exportCsv(){
-  const rows = [['이름','고인과의 관계','메시지','남긴 시각']];
-  [...messages].sort((a,b)=>a.timestamp-b.timestamp).forEach(m=>{
-    rows.push([
-      m.name || '',
-      m.relation || '',
-      m.message || '',
-      new Date(m.timestamp).toLocaleString('ko-KR')
-    ]);
-  });
-  const csvContent = '\uFEFF' + rows.map(r => r.map(csvEscape).join(',')).join('\n');
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  const nameForFile = ($('deceasedName').value.trim() || '방명록');
-  a.href = url;
-  a.download = `${nameForFile}_방명록.csv`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
-$('submitBtn').addEventListener('click', handleSubmit);
-$('deceasedName').addEventListener('input', saveDeceasedName);
-$('exportBtn').addEventListener('click', exportCsv);
-
-const ADMIN_PASSWORD = "0000";
-
-function deleteMessage(id){
-  if(!confirm('이 메시지를 삭제할까요? 되돌릴 수 없습니다.')) return;
-  db.ref('messages/' + id).remove().catch(e=>console.error('삭제 실패', e));
-  sendToSheet({ action: 'delete', id });
-}
-
-$('adminBtn').addEventListener('click', ()=>{
-  if(document.body.classList.contains('admin-mode')){
-    document.body.classList.remove('admin-mode');
-    $('adminBtn').textContent = '관리자 모드';
-    return;
-  }
-  const input = prompt('관리자 비밀번호를 입력하세요');
-  if(input === null) return;
-  if(input === ADMIN_PASSWORD){
-    document.body.classList.add('admin-mode');
-    $('adminBtn').textContent = '관리자 모드 종료';
-  }else{
-    alert('비밀번호가 올바르지 않습니다.');
-  }
-});
-
-listenDeceasedName();
-listenMessages();
-</script>
-
+  <!-- 자바스크립트 로드 -->
+  <script src="app.js"></script>
 </body>
 </html>
