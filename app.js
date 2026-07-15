@@ -320,73 +320,70 @@ function fetchFromGoogleSheets() {
     });
 }
 
+// 구글 시트로 POST 요청을 보내고 실제 응답(성공/실패)을 확인하는 공통 함수
+// (예전 코드는 mode:"no-cors"를 써서 실패해도 항상 "성공"으로 표시되는 문제가 있었음)
+function postToGoogleSheets(payload) {
+  return fetch(state.googleSheetsUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "text/plain" // 프리플라이트(OPTIONS) 요청을 피하기 위해 text/plain 유지
+    },
+    body: JSON.stringify(payload)
+  })
+    .then(res => {
+      if (!res.ok) {
+        throw new Error(`서버 응답 오류 (HTTP ${res.status}). 배포 설정을 확인해 주세요.`);
+      }
+      return res.json();
+    })
+    .then(resData => {
+      if (resData.status !== "success") {
+        throw new Error(resData.message || "알 수 없는 오류");
+      }
+      return resData;
+    });
+}
+
 function syncCreateToGoogleSheets(record) {
   if (!state.googleSheetsUrl) return;
   
-  fetch(state.googleSheetsUrl, {
-    method: "POST",
-    mode: "no-cors", // CORS 제한 회피용 simple request
-    headers: {
-      "Content-Type": "text/plain"
-    },
-    body: JSON.stringify({
-      action: "create",
-      data: record
+  postToGoogleSheets({ action: "create", data: record })
+    .then(() => {
+      showToast("구글 스프레드시트에 작성 완료", "success");
     })
-  })
-  .then(() => {
-    showToast("구글 스프레드시트에 작성 완료", "success");
-  })
-  .catch(err => {
-    console.error("구글 시트 전송 실패:", err);
-    showToast("구글 시트 연동 오류. 브라우저에 임시 저장되었습니다.", "error");
-  });
+    .catch(err => {
+      console.error("구글 시트 전송 실패:", err);
+      showToast("구글 시트 저장 실패: " + err.message, "error");
+    });
 }
 
 function syncDeleteFromGoogleSheets(id) {
   if (!state.googleSheetsUrl) return;
   
-  fetch(state.googleSheetsUrl, {
-    method: "POST",
-    mode: "no-cors",
-    headers: {
-      "Content-Type": "text/plain"
-    },
-    body: JSON.stringify({
-      action: "delete",
-      id: id
+  postToGoogleSheets({ action: "delete", id: id })
+    .then(() => {
+      showToast("구글 스프레드시트에서 삭제 완료", "success");
     })
-  })
-  .then(() => {
-    showToast("구글 스프레드시트에서 삭제 완료", "success");
-  })
-  .catch(err => {
-    console.error("구글 시트 삭제 전송 실패:", err);
-    showToast("구글 시트 삭제 반영에 실패했습니다.", "error");
-  });
+    .catch(err => {
+      console.error("구글 시트 삭제 전송 실패:", err);
+      showToast("구글 시트 삭제 실패: " + err.message, "error");
+    });
 }
 
 function syncInfoToGoogleSheets() {
   if (!state.googleSheetsUrl) return;
   
-  fetch(state.googleSheetsUrl, {
-    method: "POST",
-    mode: "no-cors",
-    headers: {
-      "Content-Type": "text/plain"
-    },
-    body: JSON.stringify({
-      action: "update_info",
-      data: { ...state.deceasedInfo, adminPassword: state.adminPassword }
+  postToGoogleSheets({
+    action: "update_info",
+    data: { ...state.deceasedInfo, adminPassword: state.adminPassword }
+  })
+    .then(() => {
+      showToast("장례 정보가 구글 스프레드시트에 동기화되었습니다.", "success");
     })
-  })
-  .then(() => {
-    showToast("장례 정보가 구글 스프레드시트에 동기화되었습니다.", "success");
-  })
-  .catch(err => {
-    console.error("장례 정보 시트 전송 실패:", err);
-    showToast("장례 정보 구글 시트 동기화 실패", "error");
-  });
+    .catch(err => {
+      console.error("장례 정보 시트 전송 실패:", err);
+      showToast("장례 정보 동기화 실패: " + err.message, "error");
+    });
 }
 
 // 8. 이벤트 리스너 설정
