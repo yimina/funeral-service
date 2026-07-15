@@ -278,7 +278,14 @@ function fetchFromGoogleSheets() {
     })
     .then(resData => {
       if (resData.status === "success") {
-        // 서버로부터 가져온 데이터를 로컬 상태에 동기화
+        // 1. 장례 정보 동기화 (시트에 저장된 정보가 있다면 우선 적용)
+        if (resData.deceasedInfo) {
+          state.deceasedInfo = resData.deceasedInfo;
+          localStorage.setItem("gb_deceased_info", JSON.stringify(state.deceasedInfo));
+          renderDeceasedInfo();
+        }
+        
+        // 2. 방명록 목록 동기화
         if (Array.isArray(resData.data)) {
           state.messages = resData.data;
           saveMessagesToLocalStorage();
@@ -341,6 +348,29 @@ function syncDeleteFromGoogleSheets(id) {
   .catch(err => {
     console.error("구글 시트 삭제 전송 실패:", err);
     showToast("구글 시트 삭제 반영에 실패했습니다.", "error");
+  });
+}
+
+function syncInfoToGoogleSheets() {
+  if (!state.googleSheetsUrl) return;
+  
+  fetch(state.googleSheetsUrl, {
+    method: "POST",
+    mode: "no-cors",
+    headers: {
+      "Content-Type": "text/plain"
+    },
+    body: JSON.stringify({
+      action: "update_info",
+      data: state.deceasedInfo
+    })
+  })
+  .then(() => {
+    showToast("장례 정보가 구글 스프레드시트에 동기화되었습니다.", "success");
+  })
+  .catch(err => {
+    console.error("장례 정보 시트 전송 실패:", err);
+    showToast("장례 정보 구글 시트 동기화 실패", "error");
   });
 }
 
@@ -573,6 +603,9 @@ function showAdminSettingsModal() {
     };
     localStorage.setItem("gb_deceased_info", JSON.stringify(state.deceasedInfo));
     renderDeceasedInfo();
+    
+    // 구글 스프레드시트에 장례 정보 실시간 업데이트
+    syncInfoToGoogleSheets();
     
     state.adminPassword = newPassword;
     localStorage.setItem("gb_admin_password", newPassword);
