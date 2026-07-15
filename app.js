@@ -3,37 +3,35 @@
  */
 
 // 1. 기본 상태 및 기본값 설정
+// ※ 실제 고인/유가족 성함은 소스코드에 넣지 않습니다.
+//    관리자 모드 > 환경 설정에서 입력하면 브라우저(localStorage)와
+//    (연동 시) 구글 스프레드시트에 저장되어 유지됩니다.
 const DEFAULT_DECEASED_INFO = {
-  name: "조정성 방지거",
-  passing: "2026년 7월 15일 오전 9시",
-  spouse: "김명자",
-  sons: "조경회, 조충회",
-  daughters: "조은회"
+  name: "성함을 입력해주세요",
+  passing: "",
+  spouse: "",
+  sons: "",
+  daughters: ""
 };
 
-const DEFAULT_ADMIN_PASSWORD = "1234";
+// 최초 배포 시 반드시 관리자 모드에서 비밀번호를 변경해 주세요.
+const DEFAULT_ADMIN_PASSWORD = "0000";
 
+// 최초 실행 시 화면 구성을 보여주기 위한 예시 메시지 (실제 조문객 정보 아님)
 const SEED_MESSAGES = [
   {
     id: "seed-1",
-    name: "김영수",
+    name: "예시) 홍길동",
     relation: "직장 동료",
-    message: "삼가 고인의 명복을 빕니다. 갑작스러운 비보에 깊은 슬픔을 전하며, 유가족분들께도 진심 어린 애도를 표합니다.",
-    timestamp: "2026-07-15 09:12"
+    message: "삼가 고인의 명복을 빕니다. 유가족분들께 진심 어린 위로의 말씀을 전합니다.",
+    timestamp: "2026-01-01 09:12"
   },
   {
     id: "seed-2",
-    name: "이민철",
-    relation: "고인의 오랜 친구",
-    message: "평생 정직하고 따뜻하셨던 아버님의 미소를 기억합니다. 아픔 없는 그곳에서 편히 영면하시길 기원합니다.",
-    timestamp: "2026-07-15 08:45"
-  },
-  {
-    id: "seed-3",
-    name: "박은지",
-    relation: "가족 친지",
-    message: "남겨진 가족들이 슬픔을 잘 이겨내기를 기도합니다. 삼가 고인의 명복을 빕니다.",
-    timestamp: "2026-07-15 07:30"
+    name: "예시) 김철수",
+    relation: "친구",
+    message: "따뜻했던 기억을 오래도록 간직하겠습니다. 편히 영면하시길 기원합니다.",
+    timestamp: "2026-01-01 08:45"
   }
 ];
 
@@ -51,6 +49,7 @@ let state = {
 // 2. DOM 요소 선택
 const DOM = {
   // Tribute info
+  deceasedMainTitle: document.getElementById("deceased-main-title"),
   deceasedName: document.getElementById("deceased-name"),
   deceasedPassing: document.getElementById("deceased-passing"),
   deceasedSpouse: document.getElementById("deceased-spouse"),
@@ -157,6 +156,7 @@ function checkSessionAdmin() {
 
 // 6. UI 렌더링 함수
 function renderDeceasedInfo() {
+  if (DOM.deceasedMainTitle) DOM.deceasedMainTitle.textContent = "故 " + (state.deceasedInfo.name || "");
   if (DOM.deceasedName) DOM.deceasedName.textContent = state.deceasedInfo.name || "";
   if (DOM.deceasedPassing) DOM.deceasedPassing.textContent = state.deceasedInfo.passing || "";
   if (DOM.deceasedSpouse) DOM.deceasedSpouse.textContent = state.deceasedInfo.spouse || "";
@@ -504,7 +504,7 @@ function showAdminLoginModal() {
   const bodyHTML = `
     <div class="form-group">
       <label for="admin-pw-input">관리자 비밀번호</label>
-      <input type="password" id="admin-pw-input" class="input-field" placeholder="기본값: 1234" autofocus>
+      <input type="password" id="admin-pw-input" class="input-field" placeholder="기본값: 0000" autofocus>
       <p style="font-size:0.75rem; color:var(--text-muted); margin-top:8px;">
         상주분들이 방명록을 편집 및 관리하기 위해 접속하는 패널입니다.
       </p>
@@ -516,6 +516,11 @@ function showAdminLoginModal() {
     if (input === state.adminPassword) {
       enableAdminMode();
       showToast("관리자 모드가 활성화되었습니다.", "success");
+      if (state.adminPassword === DEFAULT_ADMIN_PASSWORD) {
+        setTimeout(() => {
+          showToast("보안을 위해 환경 설정에서 비밀번호를 꼭 변경해 주세요.", "error");
+        }, 800);
+      }
       return true;
     } else {
       showToast("비밀번호가 일치하지 않습니다.", "error");
