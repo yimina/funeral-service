@@ -640,16 +640,6 @@ function showAdminSettingsModal() {
   });
 }
 
-// 故인 정보 다이렉트 수정을 위한 바인딩 (메인 화면)
-window.openDirectDeceasedEdit = function() {
-  if (!state.isAdmin) {
-    showToast("관리자 모드가 활성화되어 있지 않습니다.", "error");
-    showAdminLoginModal();
-    return;
-  }
-  showAdminSettingsModal();
-};
-
 // 방명록 삭제 확인 모달 호출 (전역 노출 필요)
 window.confirmDeleteMessage = function(id) {
   if (!state.isAdmin) {

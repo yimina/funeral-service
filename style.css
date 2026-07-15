@@ -132,7 +132,7 @@ body {
 
 .baptismal-line {
   display: block;
-  font-size: 1.1rem;
+  font-size: 1.7rem;
   font-weight: 400;
   letter-spacing: 0.03em;
   color: var(--text-secondary);
@@ -180,21 +180,6 @@ body {
 .deceased-info-value.bold {
   color: var(--text-primary);
   font-weight: 500;
-}
-
-.edit-info-btn {
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  font-size: 0.8rem;
-  cursor: pointer;
-  text-decoration: underline;
-  margin-top: 5px;
-  display: inline-block;
-  transition: var(--transition-fast);
-}
-.edit-info-btn:hover {
-  color: var(--accent-gold);
 }
 
 /* 메인 폼 카드 */
