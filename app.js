@@ -363,7 +363,7 @@ function syncCreateToGoogleSheets(record) {
   
   postToGoogleSheets({ action: "create", data: record })
     .then(() => {
-      showToast("구글 스프레드시트에 작성 완료", "success");
+      //showToast("구글 스프레드시트에 작성 완료", "success");
     })
     .catch(err => {
       console.error("구글 시트 전송 실패:", err);
