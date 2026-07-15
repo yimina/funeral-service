@@ -123,8 +123,14 @@
             </div>
           </div>
           <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" id="write-message-checkbox">
+              추모 메시지 직접 작성하기 (체크 안 하면 "삼가 고인의 명복을 빕니다"로 등록됩니다)
+            </label>
+          </div>
+          <div class="form-group" id="message-field-group" style="display: none;">
             <label for="visitor-message">추모 메시지</label>
-            <textarea id="visitor-message" class="input-field" placeholder="따뜻한 위로와 아버님을 추모하는 한마디를 남겨주세요. (비워두시면 &quot;삼가 고인의 명복을 빕니다&quot;로 등록됩니다)"></textarea>
+            <textarea id="visitor-message" class="input-field" placeholder="따뜻한 위로와 아버님을 추모하는 한마디를 남겨주세요."></textarea>
           </div>
           <button type="submit" class="submit-btn">추모 글 등록</button>
         </form>

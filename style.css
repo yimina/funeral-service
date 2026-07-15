@@ -243,6 +243,23 @@ body {
   font-weight: 500;
 }
 
+.checkbox-label {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 0.9rem !important;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent-gold);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
 .input-field {
   background-color: var(--bg-primary);
   border: 1px solid var(--border-color);

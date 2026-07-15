@@ -69,6 +69,8 @@ const DOM = {
   inputName: document.getElementById("visitor-name"),
   inputRelation: document.getElementById("visitor-relation"),
   inputMessage: document.getElementById("visitor-message"),
+  writeMessageCheckbox: document.getElementById("write-message-checkbox"),
+  messageFieldGroup: document.getElementById("message-field-group"),
   
   // Search & Filter
   searchInput: document.getElementById("search-input"),
@@ -363,7 +365,7 @@ function syncCreateToGoogleSheets(record) {
   
   postToGoogleSheets({ action: "create", data: record })
     .then(() => {
-      showToast("구글 스프레드시트에 작성 완료", "success");
+      // 이미 로컬 등록 완료 토스트가 떴으므로 중복 안내하지 않음
     })
     .catch(err => {
       console.error("구글 시트 전송 실패:", err);
@@ -402,13 +404,23 @@ function syncInfoToGoogleSheets() {
 
 // 8. 이벤트 리스너 설정
 function setupEventListeners() {
+  // 추모 메시지 직접 작성 체크박스: 체크 시 입력창 노출
+  DOM.writeMessageCheckbox.addEventListener("change", (e) => {
+    DOM.messageFieldGroup.style.display = e.target.checked ? "flex" : "none";
+    if (!e.target.checked) {
+      DOM.inputMessage.value = "";
+    }
+  });
+
   // 방명록 작성 제출
   DOM.form.addEventListener("submit", (e) => {
     e.preventDefault();
     
     const name = DOM.inputName.value.trim();
     const relation = DOM.inputRelation.value;
-    const message = DOM.inputMessage.value.trim() || "삼가 고인의 명복을 빕니다.";
+    const message = DOM.writeMessageCheckbox.checked
+      ? (DOM.inputMessage.value.trim() || "삼가 고인의 명복을 빕니다.")
+      : "삼가 고인의 명복을 빕니다.";
     
     if (!name) {
       showToast("성함을 입력해 주세요.", "error");
@@ -438,6 +450,8 @@ function setupEventListeners() {
     DOM.inputName.value = "";
     DOM.inputRelation.value = "";
     DOM.inputMessage.value = "";
+    DOM.writeMessageCheckbox.checked = false;
+    DOM.messageFieldGroup.style.display = "none";
     
     showToast("추모 글이 성공적으로 등록되었습니다.", "success");
     
