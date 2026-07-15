@@ -320,7 +320,7 @@ function fetchFromGoogleSheets() {
           saveMessagesToLocalStorage();
           renderMessages();
           updateGoogleSheetsBadge("connected");
-          //showToast("구글 시트로부터 실시간 동기화되었습니다.", "success");
+          showToast("구글 시트로부터 실시간 동기화되었습니다.", "success");
         }
       } else {
         throw new Error(resData.message || "동기화 실패");
@@ -363,7 +363,7 @@ function syncCreateToGoogleSheets(record) {
   
   postToGoogleSheets({ action: "create", data: record })
     .then(() => {
-      //showToast("구글 스프레드시트에 작성 완료", "success");
+      showToast("구글 스프레드시트에 작성 완료", "success");
     })
     .catch(err => {
       console.error("구글 시트 전송 실패:", err);
@@ -408,7 +408,7 @@ function setupEventListeners() {
     
     const name = DOM.inputName.value.trim();
     const relation = DOM.inputRelation.value;
-    const message = DOM.inputMessage.value.trim();
+    const message = DOM.inputMessage.value.trim() || "삼가 고인의 명복을 빕니다.";
     
     if (!name) {
       showToast("성함을 입력해 주세요.", "error");
@@ -416,10 +416,6 @@ function setupEventListeners() {
     }
     if (!relation) {
       showToast("고인과의 관계를 선택해 주세요.", "error");
-      return;
-    }
-    if (!message) {
-      showToast("추모 메시지를 작성해 주세요.", "error");
       return;
     }
     
