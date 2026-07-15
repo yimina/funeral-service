@@ -20,7 +20,7 @@ const DEFAULT_ADMIN_PASSWORD = "0000";
 // PC/모바일 등 기기마다 따로 설정하지 않아도 항상 같은 데이터(방명록/장례정보/비밀번호)를
 // 쓰도록 하려면, 배포한 구글 앱스 스크립트 웹 앱 URL을 아래에 붙여넣으세요.
 // (관리자 설정 화면에서 입력해도 되지만, 그 경우 그 브라우저에서만 적용됩니다.)
-const DEFAULT_GOOGLE_SHEETS_URL = "";
+const DEFAULT_GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbyw8b1aU-TSLkX6gf33p71vomlKX4I1-qHbkqhcRR3evrUxlAPRw5xkjoAmL10gM_MR/exec";
 
 // 최초 실행 시 화면 구성을 보여주기 위한 예시 메시지 (실제 조문객 정보 아님)
 const SEED_MESSAGES = [
@@ -569,18 +569,7 @@ function showAdminSettingsModal() {
       
       <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 20px 0;">
       
-      <h3 style="font-size: 0.95rem; color: var(--accent-gold); margin-bottom: 12px; font-family: var(--font-serif)">2. 구글 스프레드시트 연동</h3>
-      <div class="form-group">
-        <label>구글 앱스 스크립트 웹 앱 URL</label>
-        <input type="url" id="edit-gs-url" class="input-field" value="${state.googleSheetsUrl}" placeholder="https://script.google.com/macros/s/.../exec">
-        <p style="font-size:0.75rem; color:var(--text-muted); margin-top:6px; line-height: 1.4">
-          구글 스프레드시트의 도구 > Apps Script에서 웹 앱으로 배포한 URL을 입력해 주세요. (액세스 권한: 모든 사용자)
-        </p>
-      </div>
-
-      <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 20px 0;">
-      
-      <h3 style="font-size: 0.95rem; color: var(--accent-gold); margin-bottom: 12px; font-family: var(--font-serif)">3. 관리자 비밀번호 관리</h3>
+      <h3 style="font-size: 0.95rem; color: var(--accent-gold); margin-bottom: 12px; font-family: var(--font-serif)">2. 관리자 비밀번호 관리</h3>
       <div class="form-group">
         <label>새 관리자 비밀번호</label>
         <input type="text" id="edit-admin-password" class="input-field" value="${state.adminPassword}">
@@ -602,7 +591,6 @@ function showAdminSettingsModal() {
     const newSpouse = document.getElementById("edit-deceased-spouse").value.trim();
     const newSons = document.getElementById("edit-deceased-sons").value.trim();
     const newDaughters = document.getElementById("edit-deceased-daughters").value.trim();
-    const newGsUrl = document.getElementById("edit-gs-url").value.trim();
     const newPassword = document.getElementById("edit-admin-password").value.trim();
     
     if (!newName || !newPassword) {
@@ -626,21 +614,6 @@ function showAdminSettingsModal() {
     
     // 구글 스프레드시트에 장례 정보 + 관리자 비밀번호 실시간 업데이트 (기기 간 동기화)
     syncInfoToGoogleSheets();
-    
-    const urlChanged = state.googleSheetsUrl !== newGsUrl;
-    state.googleSheetsUrl = newGsUrl;
-    localStorage.setItem("gb_gs_url", newGsUrl);
-    
-    if (newGsUrl) {
-      if (urlChanged) {
-        showToast("구글 스프레드시트 연동 정보를 동기화합니다.", "success");
-        fetchFromGoogleSheets();
-      } else {
-        updateGoogleSheetsBadge("connected");
-      }
-    } else {
-      updateGoogleSheetsBadge("disconnected");
-    }
     
     showToast("설정이 안전하게 저장되었습니다.", "success");
     return true;
