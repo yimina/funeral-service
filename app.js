@@ -322,7 +322,7 @@ function fetchFromGoogleSheets() {
           saveMessagesToLocalStorage();
           renderMessages();
           updateGoogleSheetsBadge("connected");
-          showToast("구글 시트로부터 실시간 동기화되었습니다.", "success");
+          //showToast("구글 시트로부터 실시간 동기화되었습니다.", "success");
         }
       } else {
         throw new Error(resData.message || "동기화 실패");
@@ -394,7 +394,7 @@ function syncInfoToGoogleSheets() {
     data: { ...state.deceasedInfo, adminPassword: state.adminPassword }
   })
     .then(() => {
-      showToast("장례 정보가 구글 스프레드시트에 동기화되었습니다.", "success");
+      //showToast("장례 정보가 구글 스프레드시트에 동기화되었습니다.", "success");
     })
     .catch(err => {
       console.error("장례 정보 시트 전송 실패:", err);
@@ -672,7 +672,7 @@ window.confirmDeleteMessage = function(id) {
     saveMessagesToLocalStorage();
     renderMessages();
     
-    showToast("조의 메시지를 로컬에서 삭제했습니다.", "success");
+    showToast("메시지를 로컬에서 삭제했습니다.", "success");
     
     // 시트 동기화 삭제
     syncDeleteFromGoogleSheets(id);
